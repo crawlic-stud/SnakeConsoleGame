@@ -2,9 +2,11 @@
 #include <iostream>
 #include <conio.h>
 #include <ctime>
+#include <string>
 
 
 enum COLOUR {
+    BLACK = 0x0000,
     DARK_BLUE = 0x0010,
     DARK_GREEN = 0x0020,
     DARK_CYAN = 0x0030,
@@ -101,10 +103,10 @@ public:
 
     // Controlling input
     void control() {
-        if (keyHold('W')) vel.set(0, -1);
-        if (keyHold('A')) vel.set(-1, 0);
-        if (keyHold('S')) vel.set(0, 1);
-        if (keyHold('D')) vel.set(1, 0);
+        if (keyHold('W') && (vel.y != 1)) vel.set(0, -1);
+        if (keyHold('A') && (vel.x != 1)) vel.set(-1, 0);
+        if (keyHold('S') && (vel.y != -1)) vel.set(0, 1);
+        if (keyHold('D') && (vel.x != -1)) vel.set(1, 0);
         //if (keyHold('Q')) tailSize++;
     }
 
@@ -211,6 +213,20 @@ protected:
         }
     }
 
+    CHAR_INFO createChar(char ch, WORD bgColor, WORD textColor) {
+        CHAR_INFO char_;
+        char_.Char.AsciiChar = ch;
+        char_.Attributes = bgColor;
+        char_.Attributes = textColor;
+        return char_;
+    }
+
+    void drawText(char text[], int x, int y, WORD bgColor, WORD textColor) {
+        for (int i = 0; i < sizeof(text); i++) {
+            screen[x + (screenWidth * y) + i] = createChar(text[i], bgColor, textColor);
+        }
+    }
+
     void setup() {
         // Setting up font
         CONSOLE_FONT_INFOEX cfi;
@@ -239,7 +255,7 @@ protected:
 
     void draw() {
         // draw screen background
-        fill(COLOUR::WHITE);
+        fill(COLOUR::BLACK);
 
         // draw apple
         drawPixel(COLOUR::RED, snake.apple.x, snake.apple.y);
@@ -247,8 +263,13 @@ protected:
         // draw snake 
         for (int i = 0; i < snake.tailSize; i++) {
             drawPixel(COLOUR::DARK_GREEN, snake.tail[i].x, snake.tail[i].y);
-            drawPixel(COLOUR::GREEN, snake.head.x, snake.head.y);
         }
+        drawPixel(COLOUR::GREEN, snake.head.x, snake.head.y);
+
+        // draw score
+        //std::string scoreText = std::to_string(snake.tailSize);
+        //char score[] = "25";
+        //drawText(score, 0, 0, COLOUR::BLACK, FOREGROUND_GREEN);
     }
 
     void update() {
@@ -261,7 +282,7 @@ protected:
             screen,                             // buffer to copy from
             { screenWidth, screenHeight },      // col-row size of buffer
             { 0, 0 },                           // top left src cell in buffer
-            &writeRect);
+            &writeRect);                        // buffer rect
 
     }
 
@@ -276,6 +297,7 @@ public:
                 startTime = GetTickCount64();
             }
         }
+        std::cout << "GAME OVER\n" << "SCORE: " << snake.tailSize << '\n';
     }
 };
 
@@ -283,4 +305,7 @@ public:
 int main() {
     Game game(30, 30);
     game.run();
+    //char mem[] = "";
+    //std::cout << sizeof(mem) << '\n'; // sizeof(char);
+    //std::cout << sizeof(char);
 }
